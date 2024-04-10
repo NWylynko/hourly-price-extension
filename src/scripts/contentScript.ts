@@ -42,7 +42,7 @@ const main = async () => {
   const { hourlyRate } = await chrome.storage.local.get('hourlyRate') as { hourlyRate: number | undefined }
   const { enabled } = await chrome.storage.local.get('enabled') as { enabled: boolean | undefined }
 
-  if (!enabled) {
+  if (enabled === false) {
     return;
   }
 
