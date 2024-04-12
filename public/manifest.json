@@ -13,8 +13,7 @@
   },
   "permissions": [
     "scripting",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "http://*/*",
