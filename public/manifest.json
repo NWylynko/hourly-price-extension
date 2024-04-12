@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "name": "Hourly Wage Price Converter",
   "description": "Instead of seeing the dollar amount on price tags, see the amount of hours you would need to work to afford the purchase.",
   "icons": {

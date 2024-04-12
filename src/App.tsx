@@ -26,16 +26,28 @@ async function reloadWindow() {
   const [tab] = await chrome.tabs.query({active: true, currentWindow: true})
 
   if (tab && tab.id) {
-
     chrome.scripting.executeScript({
       target: {tabId: tab.id},
       func: () => {
         window.location.reload()
       },
     })
-
   }
 }
+
+// async function log(...data: any[]) {
+//   const [tab] = await chrome.tabs.query({active: true, currentWindow: true})
+
+//   if (tab && tab.id) {
+//     chrome.scripting.executeScript({
+//       target: {tabId: tab.id},
+//       func: (data) => {
+//         console.log(data)
+//       },
+//       args: [data]
+//     })
+//   }
+// }
 
 function App() {
 
@@ -68,7 +80,19 @@ function App() {
     <div className="min-w-64 min-h-96 flex flex-col gap-8 justify-center items-center p-4">
       <h2 className="text-lg drop-shadow text-center">Hourly Wage Price Converter</h2>
 
-      <EnabledToggle />
+      <div className="flex flex-col gap-2">
+        <EnabledToggle 
+          toggleKey="enabled" 
+          default={true}
+          title="Enable"
+        />
+
+        <EnabledToggle 
+          toggleKey="showOriginal" 
+          default={false}
+          title="Show Original"
+        />
+      </div>
       
       <Form {...form}>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -93,26 +117,33 @@ function App() {
   )
 }
 
-const EnabledToggle = () => {
+type ToggleProps = {
+  toggleKey: string;
+  default: boolean;
+  title: string;
+}
+
+const EnabledToggle = (props: ToggleProps) => {
 
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null)
 
   useEffect(() => {
-    chrome.storage.local.get('enabled', (data) => {
-      setIsEnabled(data.enabled ?? true)
+    chrome.storage.local.get(props.toggleKey, (data) => {
+      // log({ data })
+      setIsEnabled(data[props.toggleKey] ?? props.default)
     })
   }, [])
 
   const handleToggle = async (checked: boolean) => {
     setIsEnabled(checked)
-    await chrome.storage.local.set({enabled: checked})
+    await chrome.storage.local.set({ [props.toggleKey]: checked })
     await reloadWindow()
   }
 
   return (
     <div className="flex flex-rol items-center gap-2">
-      <Switch id="enabled" disabled={isEnabled === null} checked={isEnabled ?? true} onCheckedChange={handleToggle} />
-      <Label htmlFor="enabled">Enabled</Label>
+      <Switch id="enabled" disabled={isEnabled === null} checked={isEnabled ?? props.default} onCheckedChange={handleToggle} />
+      <Label htmlFor="enabled">{props.title}</Label>
     </div>
   )
 }

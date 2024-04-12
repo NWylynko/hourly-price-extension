@@ -1,4 +1,3 @@
-
 function displayTime(hours: number) {
   if (hours >= 1) {
     // If more than or equal to one hour, display as hours
@@ -19,11 +18,31 @@ function convertPriceToHours(priceString: string, hourlyRate: number) {
   return displayTime(hours);
 }
 
+function findStringInNode(node: Node, regex: RegExp, callback: (node: Node, match: string) => void) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    const matches = node.nodeValue?.match(regex) || [];
+    matches.forEach((match) => {
+      callback(node, match);
+    });
+  } else {
+    node.childNodes.forEach((childNode) => {
+      findStringInNode(childNode, regex, callback);
+    });
+  }
+}
+
+const priceRegex = /^\s*\$\s*\d+(\.\d{2})?\s*$/gm; // Simple regex for dollar amounts
+
 // Function to find and replace all price strings on the page
-function replacePricesWithHours(hourlyRate: number) {
-  const priceRegex = /\$\d+(?:\.\d{1,2})?/g; // Simple regex for dollar amounts
-  document.body.innerHTML = document.body.innerHTML.replace(priceRegex, function (match) {
-    return ` ${convertPriceToHours(match, hourlyRate)}`;
+function replacePricesWithHours(hourlyRate: number, showOriginal: boolean) {
+  findStringInNode(document.body, priceRegex, (node, match) => {
+    const hours = convertPriceToHours(match, hourlyRate);
+    // node.nodeValue = hours
+    if (showOriginal) {
+      node.textContent = `${hours} (${match})`
+    } else {
+      node.textContent = hours
+    }
   });
 }
 
@@ -40,14 +59,15 @@ function replacePricesWithHours(hourlyRate: number) {
 
 const main = async () => {
   const { hourlyRate } = await chrome.storage.local.get('hourlyRate') as { hourlyRate: number | undefined }
-  const { enabled } = await chrome.storage.local.get('enabled') as { enabled: boolean | undefined }
+  const { enabled = true } = await chrome.storage.local.get('enabled') as { enabled: boolean | undefined }
+  const { showOriginal = false } = await chrome.storage.local.get('showOriginal') as { showOriginal: boolean | undefined }
 
   if (enabled === false) {
     return;
   }
 
   if (hourlyRate) {
-    replacePricesWithHours(hourlyRate);
+    replacePricesWithHours(hourlyRate, showOriginal);
   }
 }
 
